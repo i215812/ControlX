@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ControlX — Nineveh Control Lab</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #050403;
+  --panel:    #0c0a07;
+  --panel2:   #12100b;
+  --gold:     #d8b15a;
+  --gold2:    #8f6f2b;
+  --text:     #f4ead5;
+  --muted:    #aa9873;
+  --danger:   #ff6b6b;
+  --accent:   #77c7ff;
+  --line:     rgba(216,177,90,.28);
+  --glow:     rgba(216,177,90,.18);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at 30% 10%, #1a1204 0%, #050403 50%, #000 100%);
+  color: var(--text);
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  min-height: 100vh;
+}
+
+/* Subtle grid texture overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: .06;
+  background-image:
+    linear-gradient(45deg,  transparent 47%, var(--gold) 48%, transparent 50%),
+    linear-gradient(-45deg, transparent 47%, var(--gold) 48%, transparent 50%);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(#000, transparent 85%);
+}
+
+/* ── Header ──────────────────────────────────────────── */
+.header {
+  padding: 38px 24px 22px;
+  text-align: center;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  background: linear-gradient(180deg, rgba(30,22,8,.55) 0%, transparent 100%);
+}
+
+.brand {
+  font-family: 'Cinzel', serif;
+  font-size: 48px;
+  letter-spacing: 10px;
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 0 32px rgba(216,177,90,.35), 0 2px 0 rgba(0,0,0,.6);
+}
+
+.brand span { color: #f3d488; }
+
+.tag {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+/* ── Layout ──────────────────────────────────────────── */
+.wrap {
+  max-width: 1440px;
+  margin: auto;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 20px;
+}
+
+/* ── Cards ───────────────────────────────────────────── */
+.card {
+  background: linear-gradient(180deg, rgba(18,16,11,.96), rgba(8,7,5,.96));
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.03);
+  overflow: hidden;
+}
+
+.card h2 {
+  margin: 0;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: rgba(0,0,0,.18);
+}
+
+.body { padding: 20px; }
+
+/* ── Form Controls ───────────────────────────────────── */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.field { margin-bottom: 14px; }
+
+label {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 7px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-weight: 600;
+}
+
+input, select {
+  width: 100%;
+  background: #030302;
+  color: var(--text);
+  border: 1px solid rgba(216,177,90,.22);
+  border-radius: 13px;
+  padding: 12px 14px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  font-family: inherit;
+}
+
+input:focus, select:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(216,177,90,.12);
+}
+
+select option { background: #0c0a07; }
+
+/* ── Buttons ─────────────────────────────────────────── */
+.btn {
+  border: 0;
+  border-radius: 14px;
+  padding: 13px 16px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: .5px;
+  transition: opacity .15s, transform .12s, box-shadow .2s;
+}
+
+.btn:hover  { opacity: .88; transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn.primary {
+  background: linear-gradient(135deg, var(--gold), #f3d488);
+  color: #100b02;
+  box-shadow: 0 10px 28px rgba(216,177,90,.22);
+}
+
+.btn.secondary {
+  background: #0b0905;
+  color: var(--gold);
+  border: 1px solid var(--line);
+}
+
+.btn.danger {
+  background: rgba(255,107,107,.1);
+  color: #ffd1d1;
+  border: 1px solid rgba(255,107,107,.3);
+}
+
+.row { display: flex; gap: 10px; align-items: center; }
+.row > * { flex: 1; }
+
+/* ── Tabs ────────────────────────────────────────────── */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 16px;
+  background: rgba(0,0,0,.25);
+  border-bottom: 1px solid var(--line);
+}
+
+.tab {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #070604;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  font-family: inherit;
+  letter-spacing: .5px;
+  transition: background .18s, color .18s, border-color .18s, box-shadow .18s;
+}
+
+.tab.active {
+  background: var(--gold);
+  color: #080501;
+  border-color: var(--gold);
+  box-shadow: 0 6px 18px rgba(216,177,90,.22);
+}
+
+/* ── Metrics ─────────────────────────────────────────── */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 16px;
+}
+
+.metric {
+  background: #070604;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px 12px;
+}
+
+.metric b {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.metric span {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+/* ── Plot ────────────────────────────────────────────── */
+#plot { height: 640px; }
+
+/* ── Equation Box ────────────────────────────────────── */
+.equationBox {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(0,0,0,.32);
+}
+
+.eqTitle {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.eq {
+  font-size: 17px;
+  color: var(--gold);
+  line-height: 1.7;
+  word-break: break-word;
+}
+
+/* ── Notes & Errors ──────────────────────────────────── */
+.note   { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.error  { color: var(--danger); padding: 10px 0; font-size: 13px; min-height: 20px; }
+.status { color: #a0dfb0; font-size: 13px; padding: 10px 0; }
+
+/* ── Ornament ────────────────────────────────────────── */
+.ornament {
+  height: 3px;
+  background: repeating-linear-gradient(90deg, var(--gold) 0 12px, transparent 12px 22px);
+  opacity: .45;
+}
+
+/* ── Footer ──────────────────────────────────────────── */
+/* ── Export Bar ───────────────────────────────────────── */
+.export-bar {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 10px 16px;
+  border-top: 1px solid var(--line);
+  background: rgba(0,0,0,.18);
+}
+
+.btn-export {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 9px 16px;
+  background: #070604;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .18s, border-color .18s, background .18s, box-shadow .18s;
+}
+
+.btn-export:hover {
+  color: var(--gold);
+  border-color: rgba(216,177,90,.55);
+  background: rgba(216,177,90,.06);
+  box-shadow: 0 4px 14px rgba(216,177,90,.1);
+}
+
+.btn-export svg { flex-shrink: 0; }
+
+.btn-export.loading {
+  opacity: .6;
+  pointer-events: none;
+}
+
+.footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 10px 20px 32px;
+  letter-spacing: .5px;
+}
+
+.footer b { color: var(--gold); }
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 1020px) {
+  .wrap { grid-template-columns: 1fr; }
+  .brand { font-size: 36px; }
+  .metrics { grid-template-columns: 1fr 1fr; }
+  .tabs { grid-template-columns: 1fr 1fr; }
+  #plot { height: 520px; }
+}
+
+@media (max-width: 500px) {
+  .row { flex-wrap: wrap; }
+  .brand { font-size: 28px; letter-spacing: 6px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ────────────────────────────────────────── -->
+<div class="header">
+  <div class="brand">CONTROL<span>X</span></div>
+  <div class="tag">Interactive Control Systems Simulator</div>
+</div>
+
+<!-- ── Main Layout ───────────────────────────────────── -->
+<div class="wrap">
+
+  <!-- Left Panel: System & Controller -->
+  <section class="card">
+    <div class="ornament"></div>
+    <h2>System &amp; Controller</h2>
+    <div class="body">
+
+      <div class="field">
+        <label>Mode</label>
+        <select id="mode">
+          <option value="pid">PID Tuning — Closed Loop</option>
+          <option value="open">System Visualizer — Open Loop</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Numerator N(s) — Descending Powers</label>
+        <input id="num" value="1" placeholder="e.g. 1">
+      </div>
+
+      <div class="field">
+        <label>Denominator D(s) — Descending Powers</label>
+        <input id="den" value="1,3,2" placeholder="e.g. 1,3,2">
+      </div>
+
+      <div class="grid2">
+        <div class="field"><label>Kp</label><input id="kp" type="number" step="0.01" value="1"></div>
+        <div class="field"><label>Ki</label><input id="ki" type="number" step="0.01" value="0"></div>
+        <div class="field"><label>Kd</label><input id="kd" type="number" step="0.01" value="0"></div>
+        <div class="field"><label>Root Locus K Max</label><input id="kmax" type="number" step="1" value="100"></div>
+      </div>
+
+      <div class="grid2">
+        <div class="field"><label>ζ Damping Ratio</label><input id="zeta" type="number" step="0.05" value="0.5"></div>
+        <div class="field"><label>ωₙ Natural Frequency</label><input id="wn" type="number" step="0.1" value="2"></div>
+      </div>
+
+      <div class="row">
+        <button class="btn primary" onclick="run()">Run Analysis</button>
+        <button class="btn secondary" onclick="autoTune()">Auto PID (Z–N)</button>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="row">
+        <button class="btn secondary" onclick="applySecondOrder()">Apply 2nd-Order</button>
+        <button class="btn secondary" onclick="preset('zn')">ZN-Ready Preset</button>
+        <button class="btn danger" onclick="resetAll()">Reset</button>
+      </div>
+
+      <div class="equationBox">
+        <div class="eqTitle">Generated Transfer Function</div>
+        <div id="eq" class="eq">G(s) = —</div>
+      </div>
+
+      <div id="msg" class="error"></div>
+
+    </div>
+  </section>
+
+  <!-- Right Panel: Plots & Metrics -->
+  <section class="card">
+    <div class="tabs">
+      <button class="tab active" data-view="step"    onclick="setView('step')">Step Response</button>
+      <button class="tab"        data-view="bode"    onclick="setView('bode')">Bode Plot</button>
+      <button class="tab"        data-view="nyquist" onclick="setView('nyquist')">Nyquist</button>
+      <button class="tab"        data-view="root"    onclick="setView('root')">Root Locus</button>
+    </div>
+
+    <div class="metrics">
+      <div class="metric"><b>Overshoot</b><span id="m_os">—</span></div>
+      <div class="metric"><b>Settling Time</b><span id="m_ts">—</span></div>
+      <div class="metric"><b>Ku</b><span id="m_ku">—</span></div>
+      <div class="metric"><b>Pu</b><span id="m_pu">—</span></div>
+    </div>
+
+    <div id="plot"></div>
+
+    <div class="export-bar">
+      <button class="btn-export" onclick="exportPNG()" id="btn-png">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+        Export PNG
+      </button>
+      <button class="btn-export" onclick="exportPDF()" id="btn-pdf">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/>
+          <polyline points="9 9 10 9"/>
+        </svg>
+        Export PDF
+      </button>
+    </div>
+  </section>
+
+</div>
+
+<!-- ── Footer ────────────────────────────────────────── -->
+<div class="footer">
+  Developed by <b>Mohamad R. Omran</b> &mdash; <b>Mohamad.net</b>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- ── JavaScript ────────────────────────────────────── -->
+<script>
+'use strict';
+
+// ── State ────────────────────────────────────────────
+let view = 'step';
+const EPS = 1e-10;
+
+// ── Utilities ────────────────────────────────────────
+function $(id) { return document.getElementById(id); }
+
+function parsePoly(s) {
+  const a = s.split(',').map(x => Number(x.trim())).filter(x => !Number.isNaN(x));
+  if (!a.length) throw new Error('Invalid polynomial — please enter comma-separated coefficients.');
+  return trim(a);
+}
+
+function trim(p) {
+  p = p.slice();
+  while (p.length > 1 && Math.abs(p[0]) < EPS) p.shift();
+  return p;
+}
+
+function padLeft(a, n) { return Array(Math.max(0, n - a.length)).fill(0).concat(a); }
+
+function add(a, b) {
+  const n = Math.max(a.length, b.length);
+  a = padLeft(a, n); b = padLeft(b, n);
+  return trim(a.map((v, i) => v + b[i]));
+}
+
+function sub(a, b) {
+  const n = Math.max(a.length, b.length);
+  a = padLeft(a, n); b = padLeft(b, n);
+  return trim(a.map((v, i) => v - b[i]));
+}
+
+function scale(a, k) { return trim(a.map(v => v * k)); }
+
+function conv(a, b) {
+  const r = Array(a.length + b.length - 1).fill(0);
+  for (let i = 0; i < a.length; i++)
+    for (let j = 0; j < b.length; j++)
+      r[i + j] += a[i] * b[j];
+  return trim(r);
+}
+
+// ── Complex Arithmetic ───────────────────────────────
+function c(re, im = 0) { return { re, im }; }
+function cadd(a, b) { return c(a.re + b.re, a.im + b.im); }
+function csub(a, b) { return c(a.re - b.re, a.im - b.im); }
+function cmul(a, b) { return c(a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re); }
+function cdiv(a, b) {
+  const d = b.re * b.re + b.im * b.im;
+  return c((a.re * b.re + a.im * b.im) / d, (a.im * b.re - a.re * b.im) / d);
+}
+function cabs(a) { return Math.hypot(a.re, a.im); }
+
+function evalC(p, z) {
+  let r = c(0, 0);
+  for (const coeff of p) r = cadd(cmul(r, z), c(coeff, 0));
+  return r;
+}
+
+// ── Root Finding (Aberth–Ehrlich) ────────────────────
+function roots(poly) {
+  poly = trim(poly);
+  const n = poly.length - 1;
+  if (n < 1) return [];
+  const lead = poly[0];
+  poly = poly.map(v => v / lead);
+  const R = 1 + Math.max(...poly.slice(1).map(Math.abs));
+  const z = [];
+  for (let i = 0; i < n; i++) {
+    const th = 2 * Math.PI * i / n;
+    z.push(c(R * Math.cos(th), R * Math.sin(th)));
+  }
+  for (let it = 0; it < 160; it++) {
+    let maxChange = 0;
+    for (let i = 0; i < n; i++) {
+      let denom = c(1, 0);
+      for (let j = 0; j < n; j++) if (i !== j) denom = cmul(denom, csub(z[i], z[j]));
+      const dz = cdiv(evalC(poly, z[i]), denom);
+      z[i] = csub(z[i], dz);
+      maxChange = Math.max(maxChange, cabs(dz));
+    }
+    if (maxChange < 1e-9) break;
+  }
+  return z;
+}
+
+// ── Transfer Functions ───────────────────────────────
+function pidTF() {
+  const kp = +$('kp').value, ki = +$('ki').value, kd = +$('kd').value;
+  return { num: trim([kd, kp, ki]), den: [1, 0] };
+}
+
+function plant() {
+  return { num: parsePoly($('num').value), den: parsePoly($('den').value) };
+}
+
+function closedLoop(G, C) {
+  const Lnum = conv(C.num, G.num);
+  const Lden = conv(C.den, G.den);
+  return { num: Lnum, den: add(Lden, Lnum), open: { num: Lnum, den: Lden } };
+}
+
+function currentSystem() {
+  const G = plant();
+  if ($('mode').value === 'open') return { sys: G, open: G };
+  const CL = closedLoop(G, pidTF());
+  return { sys: { num: CL.num, den: CL.den }, open: CL.open };
+}
+
+function tfAt(sys, w) {
+  const s = c(0, w);
+  return cdiv(evalC(sys.num, s), evalC(sys.den, s));
+}
+
+// ── Step Response (RK4 State-Space) ─────────────────
+function stepResponse(sys) {
+  const den = trim(sys.den);
+  const num = trim(sys.num);
+  const n = den.length - 1;
+  if (n < 1) throw new Error('Step response requires a dynamic denominator (order ≥ 1).');
+  const denN = den.map(v => v / den[0]);
+  const numN = num.map(v => v / sys.den[0]);
+  const numP = padLeft(numN, n + 1);
+  const D = numP[0];
+  const C = numP.slice(1).map((b, i) => b - D * denN[i + 1]);
+  const A = Array.from({ length: n }, () => Array(n).fill(0));
+  for (let i = 0; i < n - 1; i++) A[i][i + 1] = 1;
+  for (let j = 0; j < n; j++) A[n - 1][j] = -denN[n - j];
+  const B = Array(n).fill(0); B[n - 1] = 1;
+  let x = Array(n).fill(0);
+  const dt = 0.01, T = 12, t = [], y = [];
+  function f(x) {
+    const dx = Array(n).fill(0);
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) dx[i] += A[i][j] * x[j];
+      dx[i] += B[i];
+    }
+    return dx;
+  }
+  for (let k = 0; k <= T / dt; k++) {
+    let yy = D;
+    for (let i = 0; i < n; i++) yy += C[i] * x[i];
+    t.push(k * dt); y.push(yy);
+    const k1 = f(x);
+    const k2 = f(x.map((v, i) => v + dt * k1[i] / 2));
+    const k3 = f(x.map((v, i) => v + dt * k2[i] / 2));
+    const k4 = f(x.map((v, i) => v + dt * k3[i]));
+    x = x.map((v, i) => v + dt * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]) / 6);
+  }
+  return { t, y };
+}
+
+// ── Bode Analysis ────────────────────────────────────
+function bode(sys) {
+  const w = [], mag = [], phase = [];
+  for (let i = 0; i < 260; i++) {
+    const ww = Math.pow(10, -2 + i * (4 / 259));
+    const H = tfAt(sys, ww);
+    w.push(ww);
+    mag.push(20 * Math.log10(Math.max(cabs(H), 1e-12)));
+    phase.push(Math.atan2(H.im, H.re) * 180 / Math.PI);
+  }
+  return { w, mag, phase };
+}
+
+// ── Nyquist Analysis ─────────────────────────────────
+function nyquist(sys) {
+  const x = [], y = [];
+  for (let i = 0; i < 420; i++) {
+    const ww = Math.pow(10, -3 + i * (5 / 419));
+    const H = tfAt(sys, ww);
+    x.push(H.re); y.push(H.im);
+  }
+  return { x, y };
+}
+
+// ── Root Locus ───────────────────────────────────────
+function rootLocus(openSys) {
+  const Kmax = +$('kmax').value || 100;
+  const xs = [], ys = [], text = [];
+  const { den: Lden, num: Lnum } = openSys;
+  for (let i = 0; i <= 90; i++) {
+    const K = Kmax * i / 90;
+    const ch = add(Lden, scale(Lnum, K));
+    for (const r of roots(ch)) {
+      xs.push(r.re); ys.push(r.im);
+      text.push('K = ' + K.toFixed(2));
+    }
+  }
+  return { xs, ys, text, poles: roots(Lden), zeros: roots(Lnum) };
+}
+
+// ── Performance Metrics ──────────────────────────────
+function metrics(t, y) {
+  const final = y[y.length - 1];
+  const peak  = Math.max(...y);
+  const os    = final ? Math.max(0, (peak - final) / Math.abs(final) * 100) : 0;
+  let ts = '—';
+  const band = 0.02 * Math.max(1, Math.abs(final));
+  for (let i = 0; i < y.length; i++) {
+    let ok = true;
+    for (let j = i; j < y.length; j++) {
+      if (Math.abs(y[j] - final) > band) { ok = false; break; }
+    }
+    if (ok) { ts = t[i].toFixed(2) + ' s'; break; }
+  }
+  $('m_os').textContent = os.toFixed(1) + '%';
+  $('m_ts').textContent = ts;
+}
+
+// ── Ziegler–Nichols Auto-Tune ────────────────────────
+function findKuPu() {
+  const G = plant();
+  let prev = null, best = null;
+  for (let K = 0.001; K <= 1e7; K *= 1.025) {
+    const ch = add(G.den, scale(G.num, K));
+    const rs = roots(ch);
+    const maxRe = Math.max(...rs.map(r => r.re));
+    if (prev && prev.maxRe < 0 && maxRe >= 0) { best = { lo: prev.K, hi: K }; break; }
+    prev = { K, maxRe };
+  }
+  if (!best) {
+    throw new Error(
+      'Ziegler\u2013Nichols: no finite Ku found for this plant. ' +
+      'Try the "ZN-Ready Preset" or use a higher-order plant with an integrator ' +
+      '(e.g. denominator = 1, 6, 5, 0).'
+    );
+  }
+  for (let i = 0; i < 50; i++) {
+    const mid = (best.lo + best.hi) / 2;
+    const rs  = roots(add(G.den, scale(G.num, mid)));
+    const maxRe = Math.max(...rs.map(r => r.re));
+    if (maxRe >= 0) best.hi = mid; else best.lo = mid;
+  }
+  const Ku = (best.lo + best.hi) / 2;
+  const rs   = roots(add(G.den, scale(G.num, Ku)));
+  const pair = rs
+    .filter(r => Math.abs(r.im) > 1e-5)
+    .sort((a, b) => Math.abs(b.im) - Math.abs(a.im))[0];
+  if (!pair) throw new Error('Ku located, but no dominant oscillatory pole pair found to compute Pu.');
+  const Pu = 2 * Math.PI / Math.abs(pair.im);
+  return { Ku, Pu };
+}
+
+function autoTune() {
+  try {
+    const { Ku, Pu } = findKuPu();
+    $('m_ku').textContent = Ku.toFixed(3);
+    $('m_pu').textContent = Pu.toFixed(3) + ' s';
+    $('kp').value = (0.6   * Ku).toPrecision(5);
+    $('ki').value = (1.2   * Ku / Pu).toPrecision(5);
+    $('kd').value = (0.075 * Ku * Pu).toPrecision(5);
+    $('mode').value = 'pid';
+    showMsg('Ziegler\u2013Nichols PID applied — Kp = 0.6 Ku, Ki = 1.2 Ku/Pu, Kd = 0.075 Ku·Pu', false);
+    run();
+  } catch (e) {
+    showMsg(e.message, true);
+  }
+}
+
+// ── View ─────────────────────────────────────────────
+function setView(v) {
+  view = v;
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  run();
+}
+
+// ── Plotly Layout Template ───────────────────────────
+function baseLayout(title) {
+  return {
+    title: { text: title, font: { color: '#d8b15a', size: 15 } },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor:  '#050403',
+    font:  { color: '#f4ead5', family: 'Inter, sans-serif' },
+    xaxis: { gridcolor: 'rgba(216,177,90,.1)', zerolinecolor: 'rgba(216,177,90,.45)' },
+    yaxis: { gridcolor: 'rgba(216,177,90,.1)', zerolinecolor: 'rgba(216,177,90,.45)' },
+    margin: { l: 64, r: 28, t: 60, b: 58 },
+    legend: { bgcolor: 'rgba(0,0,0,0)', bordercolor: 'rgba(216,177,90,.3)', borderwidth: 1 }
+  };
+}
+
+// ── Infer ζ and ωₙ from Denominator ─────────────────
+// Works for any 2nd-order denominator: a·s² + b·s + c
+// Normalises to s² + (b/a)s + (c/a), then:
+//   ωₙ = √(c/a),  ζ = (b/a) / (2·ωₙ)
+function inferZetaOmega() {
+  try {
+    const G = plant();
+    const d = G.den;
+    // Must be exactly 2nd-order (3 coefficients after trimming leading zeros)
+    if (d.length !== 3) { clearZetaOmega(); return; }
+    const [a, b, cc] = d;
+    if (a <= 0 || cc <= 0) { clearZetaOmega(); return; }
+    const wn   = Math.sqrt(cc / a);
+    const zeta = (b / a) / (2 * wn);
+    if (!isFinite(wn) || !isFinite(zeta) || zeta < 0) { clearZetaOmega(); return; }
+    // Update fields only if values have meaningfully changed (avoid cursor-jump on typing)
+    const wnEl   = $('wn');
+    const zetaEl = $('zeta');
+    const wnNew   = +wn.toPrecision(5);
+    const zetaNew = +zeta.toPrecision(5);
+    if (Math.abs(+wnEl.value   - wnNew)   > 1e-9) wnEl.value   = wnNew;
+    if (Math.abs(+zetaEl.value - zetaNew) > 1e-9) zetaEl.value = zetaNew;
+  } catch (e) {
+    // Silently ignore parse errors — user is still typing
+  }
+}
+
+function clearZetaOmega() {
+  // Leave values as-is; don't wipe what the user typed for ζ/ωₙ
+}
+
+// ── Transfer Function Display ────────────────────────
+function updateEquation() {
+  try {
+    const G = plant();
+    $('eq').innerHTML = 'G(s) = ' + frac(polyHTML(G.num), polyHTML(G.den));
+    inferZetaOmega();
+  } catch (e) {
+    $('eq').textContent = 'G(s) = —';
+  }
+}
+
+function polyHTML(p) {
+  const n = p.length - 1;
+  const parts = [];
+  for (let i = 0; i < p.length; i++) {
+    const a = p[i], pow = n - i;
+    if (Math.abs(a) < 1e-12) continue;
+    const sign  = a < 0 ? ' − ' : ' + ';
+    const aa    = Math.abs(a);
+    const coeff = (Math.abs(aa - 1) < 1e-12 && pow > 0) ? '' : Number(aa.toPrecision(5)).toString();
+    const term  = pow === 0 ? coeff : (pow === 1 ? coeff + 's' : coeff + 's<sup>' + pow + '</sup>');
+    parts.push((parts.length === 0 ? (a < 0 ? '− ' : '') : sign) + term);
+  }
+  return parts.length ? parts.join('') : '0';
+}
+
+function frac(num, den) {
+  return (
+    '<span style="display:inline-block;text-align:center;vertical-align:middle">' +
+    '<span style="display:block;border-bottom:1px solid var(--gold);padding:2px 12px">' + num + '</span>' +
+    '<span style="display:block;padding:4px 12px 0">' + den + '</span>' +
+    '</span>'
+  );
+}
+
+// ── Message Helper ───────────────────────────────────
+function showMsg(msg, isError = true) {
+  const el = $('msg');
+  el.textContent = msg;
+  el.className = isError ? 'error' : 'status';
+}
+
+// ── Main Run ─────────────────────────────────────────
+function run() {
+  try {
+    showMsg('', false);
+    updateEquation();
+    const { sys, open } = currentSystem();
+
+    if (view === 'step') {
+      const r = stepResponse(sys);
+      metrics(r.t, r.y);
+      Plotly.newPlot('plot', [{
+        x: r.t, y: r.y, mode: 'lines',
+        line: { color: '#d8b15a', width: 3 }
+      }], {
+        ...baseLayout('Step Response'),
+        xaxis: { ...baseLayout('').xaxis, title: 'Time (s)' },
+        yaxis: { ...baseLayout('').yaxis, title: 'Amplitude' }
+      }, { responsive: true });
+    }
+
+    if (view === 'bode') {
+      const r = bode(sys);
+      Plotly.newPlot('plot', [
+        { x: r.w, y: r.mag,   name: 'Magnitude (dB)', xaxis: 'x',  yaxis: 'y',  line: { color: '#d8b15a' } },
+        { x: r.w, y: r.phase, name: 'Phase (°)',       xaxis: 'x2', yaxis: 'y2', line: { color: '#77c7ff' } }
+      ], {
+        ...baseLayout('Bode Plot'),
+        grid:    { rows: 2, columns: 1, pattern: 'independent' },
+        xaxis:   { type: 'log', gridcolor: 'rgba(216,177,90,.1)', title: 'Frequency (rad/s)' },
+        xaxis2:  { type: 'log', gridcolor: 'rgba(216,177,90,.1)', title: 'Frequency (rad/s)' },
+        yaxis:   { title: 'Magnitude (dB)', gridcolor: 'rgba(216,177,90,.1)' },
+        yaxis2:  { title: 'Phase (°)',      gridcolor: 'rgba(216,177,90,.1)' },
+        showlegend: false
+      }, { responsive: true });
+    }
+
+    if (view === 'nyquist') {
+      const r = nyquist(open);
+      Plotly.newPlot('plot', [
+        { x: r.x, y: r.y,              mode: 'lines',   name: '+ω', line:   { color: '#d8b15a', width: 3 } },
+        { x: r.x, y: r.y.map(v => -v), mode: 'lines',   name: '−ω', line:   { color: '#77c7ff', width: 2, dash: 'dot' } },
+        { x: [-1], y: [0],              mode: 'markers', name: '−1 + j0', marker: { color: '#ff6b6b', size: 12 } }
+      ], {
+        ...baseLayout('Nyquist Plot — Open Loop'),
+        xaxis: { ...baseLayout('').xaxis, title: 'Re' },
+        yaxis: { ...baseLayout('').yaxis, title: 'Im' }
+      }, { responsive: true });
+    }
+
+    if (view === 'root') {
+      const r = rootLocus(open);
+      Plotly.newPlot('plot', [
+        { x: r.xs,                  y: r.ys,                  text: r.text,         mode: 'markers', name: 'Locus',  marker: { color: '#d8b15a', size: 5 } },
+        { x: r.poles.map(p => p.re), y: r.poles.map(p => p.im), mode: 'markers', name: 'Poles',  marker: { symbol: 'x',             size: 14, color: '#ff6b6b' } },
+        { x: r.zeros.map(z => z.re), y: r.zeros.map(z => z.im), mode: 'markers', name: 'Zeros',  marker: { symbol: 'circle-open',   size: 13, color: '#77c7ff' } }
+      ], {
+        ...baseLayout('Root Locus — Roots of D(s) + K·N(s) = 0'),
+        xaxis: { ...baseLayout('').xaxis, title: 'Real Axis' },
+        yaxis: { ...baseLayout('').yaxis, title: 'Imaginary Axis' }
+      }, { responsive: true });
+    }
+
+  } catch (e) {
+    showMsg(e.message, true);
+  }
+}
+
+// ── 2nd-Order Preset ─────────────────────────────────
+function applySecondOrder() {
+  const z = +$('zeta').value, w = +$('wn').value;
+  if (!(z > 0) || !(w > 0)) {
+    showMsg('ζ and ωₙ must both be greater than zero.', true);
+    return;
+  }
+  $('num').value = (w * w).toPrecision(5);
+  $('den').value = ['1', (2 * z * w).toPrecision(5), (w * w).toPrecision(5)].join(',');
+  $('kmax').value = 100;
+  run();
+}
+
+// ── Presets ──────────────────────────────────────────
+function preset(x) {
+  if (x === 'zn') {
+    $('num').value  = '1';
+    $('den').value  = '1,6,5,0';
+    $('kp').value   = 1;
+    $('ki').value   = 0;
+    $('kd').value   = 0;
+    $('kmax').value = 200;
+  }
+  run();
+}
+
+// ── Reset ────────────────────────────────────────────
+function resetAll() {
+  $('num').value   = '1';
+  $('den').value   = '1,3,2';
+  $('kp').value    = '1';
+  $('ki').value    = '0';
+  $('kd').value    = '0';
+  $('kmax').value  = '100';
+  $('mode').value  = 'pid';
+  $('m_ku').textContent = '—';
+  $('m_pu').textContent = '—';
+  showMsg('', false);
+  run();
+}
+
+// ── Export Helpers ─────────────────────────────────
+function plotTitle() {
+  const titles = { step: 'Step Response', bode: 'Bode Plot', nyquist: 'Nyquist Plot', root: 'Root Locus' };
+  return 'ControlX — ' + (titles[view] || 'Plot');
+}
+
+function exportPNG() {
+  const btn = $('btn-png');
+  btn.classList.add('loading');
+  btn.textContent = 'Exporting…';
+  Plotly.toImage('plot', { format: 'png', width: 1400, height: 700, scale: 2 })
+    .then(dataUrl => {
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = plotTitle().replace(/[^a-z0-9]/gi, '_') + '.png';
+      a.click();
+    })
+    .catch(e => showMsg('PNG export failed: ' + e.message, true))
+    .finally(() => {
+      btn.classList.remove('loading');
+      btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Export PNG`;
+    });
+}
+
+function exportPDF() {
+  const btn = $('btn-pdf');
+  btn.classList.add('loading');
+  btn.textContent = 'Exporting…';
+  const W = 1400, H = 700;
+  Plotly.toImage('plot', { format: 'png', width: W, height: H, scale: 2 })
+    .then(dataUrl => {
+      const { jsPDF } = window.jspdf;
+      // Landscape A4: 297 x 210 mm
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pw = pdf.internal.pageSize.getWidth();
+      const ph = pdf.internal.pageSize.getHeight();
+      const margin = 14;
+
+      // Header bar
+      pdf.setFillColor(5, 4, 3);
+      pdf.rect(0, 0, pw, ph, 'F');
+
+      // Gold accent line at top
+      pdf.setDrawColor(216, 177, 90);
+      pdf.setLineWidth(0.8);
+      pdf.line(margin, 10, pw - margin, 10);
+
+      // Title
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(15);
+      pdf.setTextColor(216, 177, 90);
+      pdf.text(plotTitle(), margin, 8);
+
+      // Subtitle: transfer function text
+      const eqText = $('eq').innerText || '';
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(8);
+      pdf.setTextColor(170, 152, 115);
+      pdf.text(eqText, margin, 14.5);
+
+      // Metrics row
+      const metricLabels = ['Overshoot', 'Settling Time', 'Ku', 'Pu'];
+      const metricIds    = ['m_os', 'm_ts', 'm_ku', 'm_pu'];
+      const colW = (pw - margin * 2) / 4;
+      metricLabels.forEach((lbl, i) => {
+        const x = margin + i * colW;
+        pdf.setFontSize(7);
+        pdf.setTextColor(170, 152, 115);
+        pdf.text(lbl.toUpperCase(), x, 21);
+        pdf.setFontSize(10);
+        pdf.setTextColor(216, 177, 90);
+        pdf.text($(metricIds[i]).textContent, x, 26.5);
+      });
+
+      // Gold line below metrics
+      pdf.setDrawColor(216, 177, 90);
+      pdf.setLineWidth(0.4);
+      pdf.line(margin, 29, pw - margin, 29);
+
+      // Plot image
+      const imgW = pw - margin * 2;
+      const imgH = imgW * (H / W);
+      const imgY = 32;
+      pdf.addImage(dataUrl, 'PNG', margin, imgY, imgW, Math.min(imgH, ph - imgY - 10));
+
+      // Footer
+      pdf.setFontSize(7);
+      pdf.setTextColor(100, 90, 70);
+      pdf.text('Generated by ControlX — Mohamad R. Omran • Mohamad.net', margin, ph - 5);
+      pdf.text(new Date().toLocaleString(), pw - margin, ph - 5, { align: 'right' });
+
+      pdf.save(plotTitle().replace(/[^a-z0-9]/gi, '_') + '.pdf');
+    })
+    .catch(e => showMsg('PDF export failed: ' + e.message, true))
+    .finally(() => {
+      btn.classList.remove('loading');
+      btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/><polyline points="9 9 10 9"/></svg> Export PDF`;
+    });
+}
+
+// ── Init ─────────────────────────────────────────────
+// Live inference: update ζ / ωₙ while the user types the polynomial
+['num', 'den'].forEach(id => {
+  $(id).addEventListener('input', () => updateEquation());
+});
+
+run();
+</script>
+</body>
+</html>
